@@ -1,0 +1,10 @@
+{
+    "name": "Year 0",
+    "description": "Friendly OpenSea Creature that enjoys long swims in the ocean.",
+    "image": "https://storage.googleapis.com/opensea-prod.appspot.com/creature/50.png",
+    "attributes": [
+        {
+            "type": "year"
+        }
+    ]
+}

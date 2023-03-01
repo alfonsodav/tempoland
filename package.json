@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^2.1.7",
+    "opensea-js": "^4.0.13",
+    "openzeppelin-solidity": "^3.4.2",
+    "truffle-hdwallet-provider": "^1.0.17"
+  }
+}
