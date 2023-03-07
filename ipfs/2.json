@@ -1,0 +1,11 @@
+{
+    "name": "Month 1",
+    "description": "Primer token mensual de año 0, Test collection.",
+    "image": "https://gateway.pinata.cloud/ipfs/QmaMtojiFBNy89DxtEFjrpEYd5no92tdEVahRAcq2rTAso",
+    "attributes": [
+        {
+            "type": "month"
+        },
+        "mes 0.01% del total de colecciòn"
+    ]
+}

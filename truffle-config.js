@@ -18,12 +18,23 @@ module.exports = {
           `https://goerli.infura.io/v3/${infura_api_key}`
         ),
       network_id: 5, //Goerli's id
-      gas: 5000000, //gas limit
+      gas: 3000000, //gas limit
       confirmations: 1, // # of confs to wait between deployments. (default: 0)
       timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true, // Skip dry run before migrations? (default: false for public nets )
     },
-    dashboard: {},
+    dashboard: {
+      provider: () =>
+        new HDWalletProvider(
+          privateKey,
+          `https://mainnet.infura.io/v3/${infura_api_key}`
+        ),
+      network_id: 1,
+      gas: 3000000,
+      confirmations: 1, // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: true,
+    },
   },
   compilers: {
     solc: {

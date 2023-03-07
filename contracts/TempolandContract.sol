@@ -98,22 +98,20 @@ contract TempolandContract is NFTokenMetadata, Ownable {
             _addressFather.transfer(valueToMonth);
             _addressKingFather.transfer(valueToYear);
         }
+        withdraw();
     }
 
-    function getRoyalKing(uint256 _fatherId)
-        internal
-        view
-        returns (address payable)
-    {
+    function getRoyalKing(
+        uint256 _fatherId
+    ) internal view returns (address payable) {
         uint256 _royal_year_id = royal_months[_fatherId].royal_father;
         return royal_years[_royal_year_id].buyer;
     }
 
-    function converStringToCode(string memory word_1, string memory word_2)
-        internal
-        pure
-        returns (bool)
-    {
+    function converStringToCode(
+        string memory word_1,
+        string memory word_2
+    ) internal pure returns (bool) {
         return
             keccak256(abi.encodePacked(word_1)) ==
             keccak256(abi.encodePacked(word_2));
@@ -159,10 +157,7 @@ contract TempolandContract is NFTokenMetadata, Ownable {
         uint256 _idFather,
         string calldata _uri
     ) public payable {
-        //require(false, string(toAsciiString(owner)));
-        if (msg.sender == owner) {
-            withdraw();
-        } else {
+        if (msg.sender != owner) {
             if (converStringToCode(_tokenClass, "year")) {
                 require(
                     msg.value >= PRICEYEAR,
@@ -194,7 +189,9 @@ contract TempolandContract is NFTokenMetadata, Ownable {
     function toAsciiString(address x) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
         for (uint256 i = 0; i < 20; i++) {
-            bytes1 b = bytes1(uint8(uint256(uint160(x)) / (2**(8 * (19 - i)))));
+            bytes1 b = bytes1(
+                uint8(uint256(uint160(x)) / (2 ** (8 * (19 - i))))
+            );
             bytes1 hi = bytes1(uint8(b) / 16);
             bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
             s[2 * i] = char(hi);
@@ -208,12 +205,9 @@ contract TempolandContract is NFTokenMetadata, Ownable {
         else return bytes1(uint8(b) + 0x57);
     }
 
-
-    function _baseURI() internal view virtual returns (string memory) {
+    /* function _baseURI() internal view virtual returns (string memory) {
         return "https://croonos.io/assest";
-    }
-
-    
+    } */
 
     function withdraw() public onlyOwner {
         // get the amount of Ether stored in this contract

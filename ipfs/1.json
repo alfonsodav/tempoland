@@ -1,7 +1,7 @@
 {
     "name": "Year 0",
-    "description": "Friendly OpenSea Creature that enjoys long swims in the ocean.",
-    "image": "https://storage.googleapis.com/opensea-prod.appspot.com/creature/50.png",
+    "description": "Primer token mensual de test collection.",
+    "image": "https://gateway.pinata.cloud/ipfs/QmVG7TSGpXfPjcdhFeyAxZVnahZosw6y7HrGwyfny3Zdib",
     "attributes": [
         {
             "type": "year"
