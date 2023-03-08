@@ -165,12 +165,10 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _approved Address to be approved for the given NFT ID.
      * @param _tokenId ID of the token to be approved.
      */
-    function approve(address _approved, uint256 _tokenId)
-        external
-        override
-        canOperate(_tokenId)
-        validNFToken(_tokenId)
-    {
+    function approve(
+        address _approved,
+        uint256 _tokenId
+    ) external override canOperate(_tokenId) validNFToken(_tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(_approved != tokenOwner, IS_OWNER);
 
@@ -185,10 +183,10 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _operator Address to add to the set of authorized operators.
      * @param _approved True if the operators is approved, false to revoke approval.
      */
-    function setApprovalForAll(address _operator, bool _approved)
-        external
-        override
-    {
+    function setApprovalForAll(
+        address _operator,
+        bool _approved
+    ) external override {
         ownerToOperators[msg.sender][_operator] = _approved;
         emit ApprovalForAll(msg.sender, _operator, _approved);
     }
@@ -199,12 +197,9 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _owner Address for whom to query the balance.
      * @return Balance of _owner.
      */
-    function balanceOf(address _owner)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function balanceOf(
+        address _owner
+    ) external view override returns (uint256) {
         require(_owner != address(0), ZERO_ADDRESS);
         return _getOwnerNFTCount(_owner);
     }
@@ -215,12 +210,9 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _tokenId The identifier for an NFT.
      * @return _owner Address of _tokenId owner.
      */
-    function ownerOf(uint256 _tokenId)
-        external
-        view
-        override
-        returns (address _owner)
-    {
+    function ownerOf(
+        uint256 _tokenId
+    ) external view override returns (address _owner) {
         _owner = idToOwner[_tokenId];
         require(_owner != address(0), NOT_VALID_NFT);
     }
@@ -231,13 +223,9 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _tokenId ID of the NFT to query the approval of.
      * @return Address that _tokenId is approved for.
      */
-    function getApproved(uint256 _tokenId)
-        external
-        view
-        override
-        validNFToken(_tokenId)
-        returns (address)
-    {
+    function getApproved(
+        uint256 _tokenId
+    ) external view override validNFToken(_tokenId) returns (address) {
         return idToApproval[_tokenId];
     }
 
@@ -247,12 +235,10 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _operator The address that acts on behalf of the owner.
      * @return True if approved for all, false otherwise.
      */
-    function isApprovedForAll(address _owner, address _operator)
-        external
-        view
-        override
-        returns (bool)
-    {
+    function isApprovedForAll(
+        address _owner,
+        address _operator
+    ) external view override returns (bool) {
         return ownerToOperators[_owner][_operator];
     }
 
@@ -335,12 +321,9 @@ contract NFToken is ERC721, SupportsInterface {
      * @param _owner Address for whom to query the count.
      * @return Number of _owner NFTs.
      */
-    function _getOwnerNFTCount(address _owner)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
+    function _getOwnerNFTCount(
+        address _owner
+    ) internal view virtual returns (uint256) {
         return ownerToNFTokenCount[_owner];
     }
 

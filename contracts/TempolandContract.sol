@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// import "./../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "./ownable.sol";
-import "./nf-token-metadata.sol";
+//import "./nf-token-metadata.sol";
+//import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+// import "../node_modules/@openzeppelin/contracts/token/common/ERC2981.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 
-//import "openzeppelin-solidity/contracts/access/Ownable.sol";
-//import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
-
-//import "openzeppelin-solidity/contracts/payment/PullPayment.sol";
-
-contract TempolandContract is NFTokenMetadata, Ownable {
+contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
     uint256 public constant PRICEYEAR = 100000;
     uint256 public constant PRICEMONTH = 10000;
     uint256 public constant PRICEDAY = 5000;
+    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+    string _name = "tempoland test";
+    string _symbol = "NFTest";
 
     event Received(address indexed _to, uint256 _value, string message);
 
@@ -33,16 +37,17 @@ contract TempolandContract is NFTokenMetadata, Ownable {
         uint256 royal_father;
         uint256 createdAt;
     }
-
     mapping(uint256 => Royal_year) public royal_years;
     mapping(uint256 => Royal_month) public royal_months;
     mapping(uint256 => Royal_day) public royal_days;
 
-    constructor() payable {
-        nftName = "tempolands NFT";
-        nftSymbol = "TEMSNFT";
-        supportedInterfaces[0x80ac58cd] = true; // ERC721
+    constructor() payable ERC721(_name, _symbol) {
+        /* name();
+        symbol() ;*/
+        // supportedInterfaces[_INTERFACE_ID_ERC721] = true; // ERC721
+        // supportedInterfaces[_INTERFACE_ID_ERC2981] = true; // ERC2981
         owner = payable(msg.sender);
+        _setDefaultRoyalty(owner, 100);
     }
 
     function father_define(
@@ -179,7 +184,7 @@ contract TempolandContract is NFTokenMetadata, Ownable {
         }
 
         _mint(_to, _tokenId);
-        _setTokenUri(_tokenId, _uri);
+        _setTokenURI(_tokenId, _uri);
 
         father_define(_to, _tokenId, _tokenClass, _idFather, (msg.value));
 
@@ -219,5 +224,61 @@ contract TempolandContract is NFTokenMetadata, Ownable {
 
         (bool success, ) = owner.call{value: amount}("");
         require(success, "Failed to send Ether");
+    }
+
+    function _burn(uint tokenId) internal virtual override(ERC721Royalty) {
+        super._burn(tokenId);
+        _resetTokenRoyalty(tokenId);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721Royalty, IERC165) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+    using Strings for uint256;
+
+    // Optional mapping for token URIs
+    mapping(uint256 => string) internal _tokenURIs;
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(
+        uint256 tokenId
+    )
+        public
+        view
+        virtual
+        override(ERC721, IERC721Metadata)
+        returns (string memory)
+    {
+        _requireMinted(tokenId);
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory base = _baseURI();
+
+        // If there is no base URI, return the token URI.
+        if (bytes(base).length == 0) {
+            return _tokenURI;
+        }
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+
+        return super.tokenURI(tokenId);
+    }
+
+    function _setTokenURI(
+        uint256 tokenId,
+        string memory _tokenURI
+    ) internal virtual {
+        require(
+            _exists(tokenId),
+            "ERC721URIStorage: URI set of nonexistent token"
+        );
+        _tokenURIs[tokenId] = _tokenURI;
     }
 }

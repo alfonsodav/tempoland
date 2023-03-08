@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./erc165.sol";
-
 /**
  * @dev Implementation of standard for detect smart contract interfaces.
  */
-contract SupportsInterface is ERC165 {
+contract SupportsInterface {
     /**
      * @dev Mapping of supported intefraces. You must not set element 0xffffffff to true.
      */
@@ -24,12 +22,9 @@ contract SupportsInterface is ERC165 {
      * @param _interfaceID Id of the interface.
      * @return True if _interfaceID is supported, false otherwise.
      */
-    function supportsInterface(bytes4 _interfaceID)
-        external
-        view
-        override
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 _interfaceID
+    ) external view returns (bool) {
         return supportedInterfaces[_interfaceID];
     }
 }
