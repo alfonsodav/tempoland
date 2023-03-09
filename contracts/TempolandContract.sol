@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "./../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "./ownable.sol";
-//import "./nf-token-metadata.sol";
-//import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-// import "../node_modules/@openzeppelin/contracts/token/common/ERC2981.sol";
-import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "./openzeppelin/token/ERC721/extensions/IERC721Metadata.sol";
+import "./openzeppelin/token/ERC721/extensions/ERC721Royalty.sol";
 
 contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
     uint256 public constant PRICEYEAR = 100000;
@@ -23,17 +19,20 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
     struct Royal_year {
         uint256 id;
         address payable buyer;
+        string tokenClass;
         uint256 createdAt;
     }
     struct Royal_month {
         uint256 id;
         address payable buyer;
+        string tokenClass;
         uint256 royal_father;
         uint256 createdAt;
     }
     struct Royal_day {
         uint256 id;
         address payable buyer;
+        string tokenClass;
         uint256 royal_father;
         uint256 createdAt;
     }
@@ -47,7 +46,7 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
         // supportedInterfaces[_INTERFACE_ID_ERC721] = true; // ERC721
         // supportedInterfaces[_INTERFACE_ID_ERC2981] = true; // ERC2981
         owner = payable(msg.sender);
-        _setDefaultRoyalty(owner, 100);
+        _setDefaultRoyalty(owner, 1000);
     }
 
     function father_define(
@@ -66,6 +65,7 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
             royal_years[_idToken] = Royal_year(
                 _idToken,
                 _buyer,
+                "year",
                 block.timestamp
             );
         }
@@ -79,6 +79,7 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
             royal_months[_idToken] = Royal_month(
                 _idToken,
                 _buyer,
+                "month",
                 _idfather,
                 block.timestamp
             );
@@ -95,6 +96,68 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
             royal_days[_idToken] = Royal_day(
                 _idToken,
                 _buyer,
+                "day",
+                _idfather,
+                block.timestamp
+            );
+            uint256 valueToMonth = (_value / 100) * 2;
+            uint256 valueToYear = (_value / 100) * 2;
+            _addressFather.transfer(valueToMonth);
+            _addressKingFather.transfer(valueToYear);
+        }
+        withdraw();
+    }
+
+    // new Funtion
+    function payTransfer(
+        address payable _buyer,
+        uint256 _idToken,
+        string memory _class,
+        uint256 _value
+    ) public {
+        if (converStringToCode(_class, "year")) {
+            if (haveOwner(_idToken)) {
+                address payable _oldOwner = royal_years[_idToken].buyer;
+                _oldOwner.transfer((_value / 100) * 90);
+                findOwner(_idToken, _buyer);
+            }
+            royal_years[_idToken] = Royal_year(
+                _idToken,
+                _buyer,
+                "year",
+                block.timestamp
+            );
+        }
+        if (converStringToCode(_class, "month")) {
+            uint _idfather = royal_months[_idToken].royal_father;
+            address payable _addressFather = royal_years[_idfather].buyer;
+
+            address payable _oldOwner = royal_months[_idToken].buyer;
+            _oldOwner.transfer((_value / 100) * 90);
+            findOwner(_idToken, _buyer);
+
+            royal_months[_idToken] = Royal_month(
+                _idToken,
+                _buyer,
+                "month",
+                _idfather,
+                block.timestamp
+            );
+            _addressFather.transfer((_value / 100) * 2);
+        }
+        if (converStringToCode(_class, "day")) {
+            uint _idfather = royal_days[_idToken].royal_father;
+            address payable _addressFather = royal_months[_idfather].buyer;
+            address payable _addressKingFather = getRoyalKing(_idfather);
+
+            address payable _oldOwner = royal_days[_idToken].buyer;
+            _oldOwner.transfer((_value / 100) * 90);
+            findOwner(_idToken, _buyer);
+
+            royal_days[_idToken] = Royal_day(
+                _idToken,
+                _buyer,
+                "day",
                 _idfather,
                 block.timestamp
             );
@@ -131,6 +194,21 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
             return true;
         }
         return false;
+    }
+
+    function getTokenClass(
+        uint256 _tokenId
+    ) public view returns (string memory) {
+        if (royal_days[_tokenId].id > 0) {
+            return royal_days[_tokenId].tokenClass;
+        }
+        if (royal_months[_tokenId].id > 0) {
+            return royal_months[_tokenId].tokenClass;
+        }
+        if (royal_years[_tokenId].id > 0) {
+            return royal_years[_tokenId].tokenClass;
+        }
+        return "no found";
     }
 
     function findOwner(uint256 _tokenId, address payable _buyer) public {
@@ -191,28 +269,30 @@ contract TempolandContract is IERC721Metadata, Ownable, ERC721Royalty {
         emit Received(msg.sender, msg.value, "deposito");
     }
 
-    function toAsciiString(address x) internal pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint256 i = 0; i < 20; i++) {
-            bytes1 b = bytes1(
-                uint8(uint256(uint160(x)) / (2 ** (8 * (19 - i))))
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public payable override(ERC721, IERC721) {
+        string memory _tokenClass = getTokenClass(tokenId);
+        if (converStringToCode(_tokenClass, "year")) {
+            require(
+                msg.value >= PRICEYEAR,
+                "Insufficient payment ETH per item"
             );
-            bytes1 hi = bytes1(uint8(b) / 16);
-            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
-            s[2 * i] = char(hi);
-            s[2 * i + 1] = char(lo);
+        } else if (converStringToCode(_tokenClass, "month")) {
+            require(
+                msg.value >= PRICEMONTH,
+                "Insufficient payment ETH per item"
+            );
+        } else if (converStringToCode(_tokenClass, "day")) {
+            require(msg.value >= PRICEDAY, "Insufficient payment ETH per item");
+        } else {
+            require(false, "token class not valid");
         }
-        return string(s);
+        payTransfer(payable(to), tokenId, _tokenClass, (msg.value));
+        super.transferFrom(from, to, tokenId);
     }
-
-    function char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
-    }
-
-    /* function _baseURI() internal view virtual returns (string memory) {
-        return "https://croonos.io/assest";
-    } */
 
     function withdraw() public onlyOwner {
         // get the amount of Ether stored in this contract
